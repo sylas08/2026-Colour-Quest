@@ -53,8 +53,9 @@ def get_round_colours():
     int_scores.sort()
     median = (int_scores[1] + int_scores[2]) / 2
     median = round_ans(median)
+    highest = int_scores[-1]
 
-    return round_colours, median
+    return round_colours, median, highest
 
 
 def rounds_ans(val):
@@ -203,7 +204,7 @@ class Play:
         # Colour lists and score list
         self.round_colour_list = []
         self.all_scores_list = []
-        self.all_medians_list = []
+        self.all_high_score_list = []
 
         self.play_box = Toplevel()
 
@@ -296,10 +297,13 @@ class Play:
         rounds_wanted = self.rounds_wanted.get()
 
         # get round colours and median score...
-        self.round_colour_list, median = get_round_colours()
+        self.round_colour_list, median, highest = get_round_colours()
 
         # Set target score as median (for later comparison)
         self.target_score.set(median)
+
+        # add median and high score to lists for stats...
+        self.all_high_score_list.append(highest)
 
         # Update heading, and score to beat labels. "Hide results label
         self.heading_label.config(text=f"Round {rounds_played} of {rounds_wanted}")
@@ -333,7 +337,6 @@ class Play:
 
         # retrieve target score and compare with user score to find round result
         target = self.target_score.get()
-        self.all_medians_list.append(target)
 
         if score >= target:
             result_text = f"Success! {colour_name} earned you {score} points"
@@ -346,6 +349,10 @@ class Play:
             self.all_scores_list.append(0)
 
         self.results_label.config(text=result_text, bg=result_bg)
+
+        # printing area to generate test data for stats (delete when done)
+        print("all scores", self.all_scores_list)
+        print("highest scores:", self.all_high_score_list)
 
         # enable stats & next buttons,  disable colour buttons
         self.next_button.config(state=NORMAL)
