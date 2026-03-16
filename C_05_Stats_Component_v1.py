@@ -88,7 +88,9 @@ class Play:
         rounds_won = self.rounds_won.get()
         stats_bundle = [rounds_won, self.all_scores_list,
                         self.all_high_score_list]
+
         Stats(self, stats_bundle)
+
 
 class Stats:
     """
@@ -105,7 +107,7 @@ class Stats:
         # sort user scores to find high scores...
         user_scores.sort()
 
-        self.help_box = Toplevel()
+        self.stats_box = Toplevel()
 
         # disable help button
         partner.stats_button.config(state=DISABLED)
