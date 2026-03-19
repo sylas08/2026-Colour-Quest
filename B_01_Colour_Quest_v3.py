@@ -213,6 +213,9 @@ class Play:
         self.game_frame = Frame(self.play_box)
         self.game_frame.grid(padx=10, pady=10)
 
+        # If users press the 'x' on the game window, end the entire game!
+        self.play_box.protocol('WM_DELETE_WINDOW', root.destroy)
+
         # body font for most labels...
         body_font = ("Arial", 12)
 
@@ -310,7 +313,7 @@ class Play:
         # add median and high score to lists for stats...
         self.all_high_score_list.append(highest)
 
-        # Update heading, and score to beat labels. "Hide results label"
+        # Update heading, and score to beat labels. Hide results label
         self.heading_label.config(text=f"Round {rounds_played + 1} of {rounds_wanted}")
         self.target_label.config(text=f"Target Score: {median}",
                                  font=("Arial", 14, "bold"))
@@ -415,7 +418,8 @@ class Play:
         Displays hints for playing game
         :return:
         """
-        DisplayHints(self)
+        rounds_played = self.rounds_played.get()
+        DisplayHints(self, rounds_played)
 
 
 
@@ -432,12 +436,88 @@ class Play:
         Stats(self, stats_bundle)
 
 
+class DisplayHints:
+    """
+    Displays help dialogue box
+    """
+
+    def __init__(self, partner, rounds_played):
+        # setup dialogue box and background colour
+        background = "#ffe6cc"
+        self.help_box = Toplevel()
+
+        # disable help, stats AND end game buttons to prevent users
+        # from leaving a dialogue open and then going back to the rounds dialogue
+        partner.hints_button.config(state=DISABLED)
+        partner.end_game_button.config(state=DISABLED)
+        partner.stats_button.config(state=DISABLED)
+
+        # if users press cross at top, closes help and
+        # 'releases' help button
+        self.help_box.protocol('WM_DELETE_WINDOW',
+                                partial(self.close_hints, partner))
+
+        self.help_frame = Frame(self.help_box, width=300,
+                                height=200)
+        self.help_frame.grid()
+
+        self.help_heading_label = Label(self.help_frame,
+                                        text="Help / Info",
+                                        font=("Arial", 14, "bold"))
+        self.help_heading_label.grid(row=0)
+
+        help_text = ("The score for each colour relates to it's hexadecimal code.  "
+                         "\n\nRemember, the hex code for white is "
+                         "#FFFFFF - which is the best possible score. "
+                         "\n\nThe hex code for black is #000000 which is the "
+                         "worst possible score. "
+                         "\n\nThe first colour in the code is red, so if "
+                         "you had to choose between red "
+                         "(#FF0000), green (#00FF00) and blue (#0000FF), then "
+                         "red would be the best choice."
+                         "\n\nGood luck!")
+
+        self.help_text_label = Label(self.help_frame,
+                                        text=help_text, wraplength=350,
+                                        justify="left")
+        self.help_text_label.grid(row=1, padx=10)
+
+        self.dismiss_button = Button(self.help_frame,
+                                        font=("Arial", 12, "bold"),
+                                        text="Dismiss", bg="#CC6600",
+                                        fg="#FFFFFF",
+                                        command=partial(self.close_hints, partner))
+        self.dismiss_button.grid(row=2, padx=10, pady=10)
+
+        # closes help dialogue (used by button and x at top of dialogue
+
+    def close_hints(self, partner):
+        """
+        Closes help dialogue box (and enables help button)
+        """
+        # Put help button back to normal
+        partner.hints_button.config(state=NORMAL)
+        partner.end_game_button.config(state=NORMAL)
+
+        # only enable stats button if we have
+        # played at least one round.
+        if self.rounds_played >= 1:
+            partner.stats_button.config(state=NORMAL)
+
+        self.help_box.destroy()
+
+
 class Stats:
     """
     Displays for Colour Quest Game
     """
 
     def __init__(self, partner, all_stats_info):
+
+        # disable buttons to prevent program crashing
+        partner.hints_button.config(state=NORMAL)
+        partner.end_game_button.config(state=NORMAL)
+        partner.stats_button.config(state=NORMAL)
 
         # Extract information from master list...
         rounds_won = all_stats_info[0]
@@ -541,70 +621,13 @@ class Stats:
         Closes help dialogue box (and enables help button)
         """
         # Put stats button back to normal
+        partner.hints_button.config(state=NORMAL)
+        partner.end_game_button.config(state=NORMAL)
         partner.stats_button.config(state=NORMAL)
         self.stats_box.destroy()
 
 
 
-class DisplayHints:
-    """
-    Displays help dialogue box
-    """
-
-    def __init__(self, partner):
-        # setup dialogue box and background colour
-        background = "#ffe6cc"
-        self.help_box = Toplevel()
-
-        # disable help button
-        partner.hints_button.config(state=DISABLED)
-
-        # if users press cross at top, closes help and
-        # 'releases' help button
-        self.help_box.protocol('WM_DELETE_WINDOW',
-                                partial(self.close_hints, partner))
-
-        self.help_frame = Frame(self.help_box, width=300,
-                                height=200)
-        self.help_frame.grid()
-
-        self.help_heading_label = Label(self.help_frame,
-                                        text="Help / Info",
-                                        font=("Arial", 14, "bold"))
-        self.help_heading_label.grid(row=0)
-
-        help_text = ("The score for each colour relates to it's hexadecimal code.  "
-                         "\n\nRemember, the hex code for white is "
-                         "#FFFFFF - which is the best possible score. "
-                         "\n\nThe hex code for black is #000000 which is the "
-                         "worst possible score. "
-                         "\n\nThe first colour in the code is red, so if "
-                         "you had to choose between red "
-                         "(#FF0000), green (#00FF00) and blue (#0000FF), then "
-                         "red would be the best choice."
-                         "\n\nGood luck!")
-
-        self.help_text_label = Label(self.help_frame,
-                                        text=help_text, wraplength=350,
-                                        justify="left")
-        self.help_text_label.grid(row=1, padx=10)
-
-        self.dismiss_button = Button(self.help_frame,
-                                        font=("Arial", 12, "bold"),
-                                        text="Dismiss", bg="#CC6600",
-                                        fg="#FFFFFF",
-                                        command=partial(self.close_hints, partner))
-        self.dismiss_button.grid(row=2, padx=10, pady=10)
-
-        # closes help dialogue (used by button and x at top of dialogue
-
-    def close_hints(self, partner):
-        """
-        Closes help dialogue box (and enables help button)
-        """
-        # Put help button back to normal
-        partner.hints_button.config(state=NORMAL)
-        self.help_box.destroy()
 
 
 # main routine
